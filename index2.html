@@ -1,0 +1,283 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Subscription Membership</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#0f172a,#1e293b,#020617);
+  color:#e5e7eb;
+  min-height:100vh;
+}
+
+/* Glass */
+.glass{
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+
+/* Header */
+header{
+  padding:24px;
+  text-align:center;
+}
+header h1{
+  font-size:30px;
+  background:linear-gradient(90deg,#22c55e,#3b82f6);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+header p{
+  font-size:14px;
+  color:#94a3b8;
+}
+
+/* Layout */
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+.layout{
+  display:grid;
+  grid-template-columns:1.1fr 1fr;
+  gap:25px;
+}
+
+/* Plans */
+.plans{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.plan-card{
+  width:300px;
+  padding:20px;
+  border-radius:16px;
+  cursor:pointer;
+  transition:0.3s;
+}
+.plan-card:hover{
+  transform:translateY(-6px) scale(1.02);
+}
+.plan-card.selected{
+  border:1px solid #22c55e;
+  box-shadow:0 0 20px rgba(34,197,94,0.6);
+}
+
+.plan-name{font-size:20px;font-weight:bold}
+.plan-price{
+  font-size:28px;
+  color:#22c55e;
+  font-weight:bold;
+}
+
+.plan-select-btn{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  margin-top:10px;
+  background:linear-gradient(90deg,#3b82f6,#6366f1);
+  color:white;
+  cursor:pointer;
+}
+
+/* Form */
+.form-card{
+  padding:20px;
+  border-radius:16px;
+}
+
+.form-group{margin-bottom:12px}
+label{font-size:12px;color:#94a3b8}
+
+input{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  margin-top:5px;
+  background:rgba(255,255,255,0.05);
+  color:white;
+}
+
+.submit-btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(90deg,#22c55e,#16a34a);
+  color:#022c22;
+  font-weight:bold;
+  cursor:pointer;
+}
+.submit-btn:disabled{
+  opacity:0.5;
+}
+
+.message{margin-top:10px;font-size:13px}
+.success{color:#22c55e}
+.error{color:#f87171}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>DevStack Membership</h1>
+  <p>Subscription System with Tiered Logic</p>
+</header>
+
+<div class="container">
+
+  <div class="layout">
+
+    <!-- PLANS -->
+    <section>
+      <div class="plans" id="plans"></div>
+    </section>
+
+    <!-- FORM -->
+    <aside class="form-card glass">
+      <h3>Create Account</h3>
+      <p style="font-size:12px;color:#94a3b8;">Select a plan first</p>
+
+      <p style="margin:10px 0;">
+        Selected Plan: <strong id="selectedPlanName">None</strong>
+      </p>
+
+      <form id="signupForm">
+        <div class="form-group">
+          <label>Name</label>
+          <input id="name" required>
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input id="email" type="email" required>
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input id="password" type="password" required>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn" disabled>
+          Start Membership
+        </button>
+
+        <div id="message" class="message"></div>
+      </form>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+const plans = [
+  {id:1,name:"Starter",price:99},
+  {id:2,name:"Pro",price:299},
+  {id:3,name:"Ultimate",price:599}
+];
+
+const plansContainer = document.getElementById("plans");
+const selectedPlanName = document.getElementById("selectedPlanName");
+const submitBtn = document.getElementById("submitBtn");
+const messageEl = document.getElementById("message");
+const form = document.getElementById("signupForm");
+
+let selectedPlan = null;
+
+// Fake database
+let users = JSON.parse(localStorage.getItem("users")) || [];
+
+// Render plans
+plans.forEach(plan => {
+  const card = document.createElement("div");
+  card.className = "plan-card glass";
+  card.dataset.id = plan.id;
+
+  card.innerHTML = `
+    <div class="plan-name">${plan.name}</div>
+    <div class="plan-price">₹${plan.price}</div>
+    <button class="plan-select-btn">Select</button>
+  `;
+
+  card.onclick = () => selectPlan(plan.id);
+  plansContainer.appendChild(card);
+});
+
+function selectPlan(id){
+  selectedPlan = plans.find(p => p.id === id);
+
+  document.querySelectorAll(".plan-card").forEach(c => c.classList.remove("selected"));
+
+  const card = document.querySelector(`[data-id="${id}"]`);
+  card.classList.add("selected");
+
+  selectedPlanName.textContent = selectedPlan.name;
+  submitBtn.disabled = false;
+}
+
+// Form submit
+form.onsubmit = (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  if(!selectedPlan){
+    messageEl.textContent = "Select a plan!";
+    messageEl.className = "message error";
+    return;
+  }
+
+  // Check duplicate user
+  const existingUser = users.find(u => u.email === email);
+
+  if(existingUser){
+    messageEl.textContent = "❌ User already exists!";
+    messageEl.className = "message error";
+    return;
+  }
+
+  const newUser = {
+    name,
+    email,
+    password,
+    plan: selectedPlan.name
+  };
+
+  users.push(newUser);
+
+  // Save in localStorage
+  localStorage.setItem("users", JSON.stringify(users));
+
+  messageEl.textContent = "✅ Account created successfully!";
+  messageEl.className = "message success";
+
+  console.log("Users:", users);
+
+  form.reset();
+};
+</script>
+
+</body>
+</html>
+```
